@@ -32,7 +32,13 @@ public class Grid : MonoBehaviour
 	public Heap<Node> snakeNodeHeap;
 	/// <summary> The heap containing all unoccupied nodes </summary>
 	public Heap<Node> freeNodeHeap;
-	/// <summary> The total number of nodes in the grid. Found by calculating the area</summary>
+	/// <summary> Step size of the nodes interpolation during aniamtion </summary>
+	[SerializeField]
+	private float nodeAnimationStep;
+	/// <summary> Determines the max size of a node in its animation </summary>
+	[SerializeField]
+	private float nodeAnimationMagnitude;
+	/// <summary> The total number of nodes in the grid. Found by calculating the area </summary>
 	public int MaxSize
 	{
 		get
@@ -67,7 +73,7 @@ public class Grid : MonoBehaviour
 	{
 		grid = new Node [gridSizeX, gridSizeY]; // Create the 2d array of nodes using the user-defined amount of nodes
 		GameObject nodeObjectTemplate = Instantiate (nodeObjectPrefab) as GameObject; // Create a game object representation for a node...
-		nodeObjectTemplate.transform.localScale = new Vector3 (nodeExtentX, nodeExtentY, 0); // That is the proper calculated size based on the current screen resolution
+		NodeObject.Initialize (new Vector3 (nodeExtentX, nodeExtentY, 0), nodeAnimationStep, nodeAnimationMagnitude); // And setup up the static fields, based on the calculated extents
 		Vector2 worldBottomLeft = new Vector2 (transform.position.x - (gridWorldSize.x / 2), transform.position.y - (gridWorldSize.y / 2)); // Calculate the bottom-most point of the grid
 		Camera.main.transform.position = new Vector3 (transform.position.x, transform.position.y, -1); // Position the main camera in the center of the grid
 
@@ -170,7 +176,7 @@ public class Node : IHeapObject <Node>
 	/// <summary> Game object representing this node </summary>
 	GameObject nodeGameObject;
 	NodeObject nodeObject;
-	/// <summary> The current type of occupier on this node (Read Only). Use SetOccupier () to change</summary>
+	/// <summary> The current type of occupier on this node. Use SetOccupier () to change</summary>
 	public OccupierType occupier
 	{
 		get;
@@ -186,22 +192,17 @@ public class Node : IHeapObject <Node>
 		{
 			case (OccupierType.FOOD):
 				nodeGameObject.SetActive (true);
-				nodeGameObject.name = "Food Node";
-				nodeObject.nodeOccupier = OccupierType.FOOD;
+				nodeObject.SetOccupier (OccupierType.FOOD);
 				occupier = OccupierType.FOOD;
 				break;
 			case (OccupierType.SNAKE):
 				nodeGameObject.SetActive (true);
-				nodeGameObject.transform.rotation = Quaternion.identity;
-				nodeGameObject.name = "Snake Node";
-				nodeObject.nodeOccupier = OccupierType.SNAKE;
-				//nodeObject.transform.localScale = new Vector3
-				nodeObject.transform.rotation = Quaternion.identity;
+				nodeObject.SetOccupier (OccupierType.SNAKE);
 				occupier = OccupierType.SNAKE;
 				break;
 			case (OccupierType.NONE):
-				nodeGameObject.name = "Empty Node";
 				occupier = OccupierType.NONE;
+				nodeObject.SetOccupier (OccupierType.NONE);
 				nodeGameObject.SetActive (false);
 				break;
 			default:
@@ -246,7 +247,6 @@ public class Node : IHeapObject <Node>
 		this.SetOccupier (OccupierType.NONE);
 		this.gridX = _gridX;
 		this.gridY = _gridY;
-		this.occupier = OccupierType.NONE;
 	}
 }
 /// <summary>

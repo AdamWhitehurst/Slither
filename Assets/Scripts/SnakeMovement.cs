@@ -38,7 +38,12 @@ public class SnakeMovement : MonoBehaviour
 	private bool cycle;
 	/// <summary> The required magnitude of Touch's delta position required for swipe input change the snake's direction </summary>
 	[SerializeField]
-	private float swipeThresholdX, swipeThresholdY;
+	private float swipeThresholdX, swipeThresholdY = 16.0f;
+	/// <summary> How many consecutive out-of-bounds movement attempts to wait before calling game over </summary>
+	[SerializeField]
+	private int outOfBoundsAttemptLimit;
+	/// <summary> Current count of out-of-bounds movement attempts </summary>
+	private int currentOOBAttempts;
 	/// <summary> Value of Time.time when snake can next move </summary>
 	private float delayTimer;
 	void Start ()
@@ -138,12 +143,16 @@ public class SnakeMovement : MonoBehaviour
 			ShiftSnakeToNode (grid.grid [newGridPositionX, newGridPositionY]);
 			gridPositionX = newGridPositionX; // Set the current grid position to the...
 			gridPositionY = newGridPositionY; // newly determined grid position values
+			currentOOBAttempts = 0; //Reset death buffer since a successful movement has been made
 			currentDirection = newDirection;
 		}
 
-		else // Kill the snake if it tries to move out of bounds
+		else // Kill the snake if it tries to move out of bounds too many times
 		{
-			GameEvents.OnDeath ();
+			if (currentOOBAttempts > outOfBoundsAttemptLimit)
+				GameEvents.OnDeath ();
+			else
+				currentOOBAttempts++;
 		}
 	}
 	/// <summary>
