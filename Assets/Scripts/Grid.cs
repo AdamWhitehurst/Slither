@@ -38,6 +38,10 @@ public class Grid : MonoBehaviour
 	/// <summary> Determines the max size of a node in its animation </summary>
 	[SerializeField]
 	private float nodeAnimationMagnitude;
+	/// <summary> How many snake nodes to initialize </summary>
+	[SerializeField]
+	[Range (1,25)]
+	private int initialSnakeLength;
 	/// <summary> The total number of nodes in the grid. Found by calculating the area </summary>
 	public int MaxSize
 	{
@@ -95,7 +99,7 @@ public class Grid : MonoBehaviour
 	/// </summary>
 	void InitializeSnake ()
 	{
-		for (int i = 5; i > 0; i--)
+		for (int i = initialSnakeLength; i > 0; i--)
 		{
 			AddSnakeNode (grid [i - 1,0]);
 		}

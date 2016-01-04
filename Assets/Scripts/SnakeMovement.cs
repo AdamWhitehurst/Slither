@@ -38,7 +38,9 @@ public class SnakeMovement : MonoBehaviour
 	private bool cycle;
 	/// <summary> The required magnitude of Touch's delta position required for swipe input change the snake's direction </summary>
 	[SerializeField]
-	private float swipeThresholdX, swipeThresholdY = 16.0f;
+	private Vector2 swipeThreshold;
+	[SerializeField]
+	private float swipeDeltaModifier;
 	/// <summary> How many consecutive out-of-bounds movement attempts to wait before calling game over </summary>
 	[SerializeField]
 	private int outOfBoundsAttemptLimit;
@@ -46,6 +48,8 @@ public class SnakeMovement : MonoBehaviour
 	private int currentOOBAttempts;
 	/// <summary> Value of Time.time when snake can next move </summary>
 	private float delayTimer;
+	/// <summary> The position of player's touch when it began </summary>
+	private Vector3 touchOrigin;
 	void Start ()
 	{
 		delayTimer = shiftDelay + Time.time; // Reset the delay timer
@@ -98,20 +102,60 @@ public class SnakeMovement : MonoBehaviour
 	{
 		if (Input.touchCount > 0)
 		{
-			Touch touchInput = Input.GetTouch (0);
-			if ((currentDirection == SnakeDirection.LEFT || currentDirection == SnakeDirection.RIGHT) && (Mathf.Abs (touchInput.deltaPosition.y) > swipeThresholdY))
+			Touch touchInput = Input.GetTouch (Input.touchCount - 1); // Get the most recent touch
+			if (touchInput.phase == TouchPhase.Began) // If it's a new touch...
 			{
-				if (touchInput.deltaPosition.y > swipeThresholdY)
-					newDirection = SnakeDirection.UP;
-				else
-					newDirection = SnakeDirection.DOWN;
+				touchOrigin = touchInput.position; // Record its starting position
 			}
-			else if ((currentDirection == SnakeDirection.UP || currentDirection == SnakeDirection.DOWN) && Mathf.Abs (touchInput.deltaPosition.x) > swipeThresholdX)
+			else if (touchInput.phase == TouchPhase.Moved && touchInput.deltaPosition.sqrMagnitude > swipeThreshold.sqrMagnitude / swipeDeltaModifier) // Ensure the touch's change in position is sufficiently fast
 			{
-				if (touchInput.deltaPosition.x > swipeThresholdX)
-					newDirection = SnakeDirection.RIGHT;
-				else
-					newDirection = SnakeDirection.LEFT;
+				switch (currentDirection) // Switch ensures that the snake moves at right angles
+				{
+					case (SnakeDirection.LEFT):
+					case (SnakeDirection.RIGHT):
+						{
+							if ((Mathf.Abs (touchInput.position.y - touchOrigin.y) > swipeThreshold.y) && // Ensure the swipe is sufficiently large...
+								(Mathf.Abs (touchInput.deltaPosition.y) > (swipeThreshold.y / swipeDeltaModifier))) // And that Y is large enough aswell
+							{
+								switch (touchInput.position.y.CompareTo (touchOrigin.y)) // Switch determines which direction the swipe was
+								{
+									case (1):
+										{
+											newDirection = SnakeDirection.UP;
+											break;
+										}
+									case (-1):
+										{
+											newDirection = SnakeDirection.DOWN;
+											break;
+										}
+								}
+							}
+								break;
+						}
+					case (SnakeDirection.UP):
+					case (SnakeDirection.DOWN):
+						{
+							if ((Mathf.Abs (touchInput.position.x - touchOrigin.x) > swipeThreshold.x) && // Ensure the swipe is sufficiently large...
+								(Mathf.Abs (touchInput.deltaPosition.x) > (swipeThreshold.x / swipeDeltaModifier))) // And that X is large enough aswell
+							{
+								switch (touchInput.position.x.CompareTo (touchOrigin.x)) // Switch determines which direction the swipe was
+								{
+									case (1):
+										{
+											newDirection = SnakeDirection.RIGHT;
+											break;
+										}
+									case (-1):
+										{
+											newDirection = SnakeDirection.LEFT;
+											break;
+										}
+								}
+							}
+							break;
+						}
+				}
 			}
 		}
 	}
@@ -144,6 +188,13 @@ public class SnakeMovement : MonoBehaviour
 			gridPositionX = newGridPositionX; // Set the current grid position to the...
 			gridPositionY = newGridPositionY; // newly determined grid position values
 			currentOOBAttempts = 0; //Reset death buffer since a successful movement has been made
+			if (newDirection != currentDirection)
+			{
+				if (Input.touchCount > 0)
+				{
+					touchOrigin = Input.GetTouch (Input.touchCount-1).position; // Reset the touch origin for comparison
+				}
+			}
 			currentDirection = newDirection;
 		}
 
