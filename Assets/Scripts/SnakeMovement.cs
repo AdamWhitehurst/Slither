@@ -117,7 +117,7 @@ public class SnakeMovement : MonoBehaviour
 							if ((Mathf.Abs (touchInput.position.y - touchOrigin.y) > swipeThreshold.y) && // Ensure the swipe is sufficiently large...
 								(Mathf.Abs (touchInput.deltaPosition.y) > (swipeThreshold.y / swipeDeltaModifier))) // And that Y is large enough aswell
 							{
-								switch (touchInput.position.y.CompareTo (touchOrigin.y)) // Switch determines which direction the swipe was
+								switch (touchInput.position.y.CompareTo (touchOrigin.y)) // Switch determines which direction the swipe went
 								{
 									case (1):
 										{
@@ -139,7 +139,7 @@ public class SnakeMovement : MonoBehaviour
 							if ((Mathf.Abs (touchInput.position.x - touchOrigin.x) > swipeThreshold.x) && // Ensure the swipe is sufficiently large...
 								(Mathf.Abs (touchInput.deltaPosition.x) > (swipeThreshold.x / swipeDeltaModifier))) // And that X is large enough aswell
 							{
-								switch (touchInput.position.x.CompareTo (touchOrigin.x)) // Switch determines which direction the swipe was
+								switch (touchInput.position.x.CompareTo (touchOrigin.x)) // Switch determines which direction the swipe went
 								{
 									case (1):
 										{
